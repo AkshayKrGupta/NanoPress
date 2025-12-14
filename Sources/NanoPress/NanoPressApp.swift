@@ -6,9 +6,9 @@ struct NanoPressApp: App {
         WindowGroup {
             ContentView()
         }
-        .windowStyle(HiddenTitleBarWindowStyle())
+        .windowStyle(HiddenTitleBarWindowStyle()) // Still useful for the full content look
         .commands {
-            SidebarCommands() // Standard sidebar commands if we need them, mostly just to be a "good citizen"
+            SidebarCommands()
         }
     }
 }

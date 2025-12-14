@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "NanoPress",
     platforms: [
-        .macOS(.v12)
+        .macOS(.v14)
     ],
     products: [
         .executable(name: "NanoPress", targets: ["NanoPress"])
@@ -12,8 +12,12 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "NanoPress",
+            dependencies: [],
             path: "Sources/NanoPress",
-            resources: []
+            exclude: ["instructions.md"],
+            resources: [
+                .process("Resources")
+            ]
         )
     ]
 )
