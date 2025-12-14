@@ -10,13 +10,15 @@ struct CompressionResult: Identifiable, Hashable {
     let destinationURL: URL
     let originalSize: Int64
     let newSize: Int64
+    let error: String?
     
-    init(originalURL: URL, destinationURL: URL, originalSize: Int64, newSize: Int64) {
+    init(originalURL: URL, destinationURL: URL? = nil, originalSize: Int64 = 0, newSize: Int64 = 0, error: String? = nil) {
         self.id = UUID()
         self.originalURL = originalURL
-        self.destinationURL = destinationURL
+        self.destinationURL = destinationURL ?? originalURL 
         self.originalSize = originalSize
         self.newSize = newSize
+        self.error = error
     }
     
     // Hashable conformance for SwiftUI List
@@ -43,9 +45,9 @@ class CompressionManager: ObservableObject {
     }
     
     // Configuration
-    @Published var imageQuality: Double = 0.8
+    @Published var compressionQuality: Double = 0.8
     
-    // MARK: - Main Workflow
+    // Main Workflow
     
     func compressFiles(_ urls: [URL], strategy: OutputStrategy) {
         // Reset State
@@ -84,18 +86,26 @@ class CompressionManager: ObservableObject {
                     result = .failure(NSError(domain: "NanoPressError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Unsupported format"]))
                 }
                 
-                // Handle Success
-                if case .success(let destURL) = result {
+                // Handle Result
+                let res: CompressionResult
+                switch result {
+                case .success(let destURL):
                     let newSize = (try? destURL.resourceValues(forKeys: [.fileSizeKey]).fileSize).flatMap { Int64($0) } ?? 0
-                    
-                    let res = CompressionResult(
+                    res = CompressionResult(
                         originalURL: url,
                         destinationURL: destURL,
                         originalSize: originalSize,
                         newSize: newSize
                     )
-                    self.completedResults.append(res)
+                case .failure(let error):
+                    res = CompressionResult(
+                        originalURL: url,
+                        originalSize: originalSize,
+                        error: error.localizedDescription
+                    )
                 }
+                
+                self.completedResults.append(res)
                 
                 self.completedCount += 1
             }
@@ -107,10 +117,10 @@ class CompressionManager: ObservableObject {
         }
     }
     
-    // MARK: - Image Compression
+    // Image Compression
     
     private func compressImageType(at url: URL, to outputDir: URL) async -> Result<URL, Error> {
-        return await Task.detached(priority: .userInitiated) { [imageQuality] () -> Result<URL, Error> in
+        return await Task.detached(priority: .userInitiated) { [compressionQuality] () -> Result<URL, Error> in
             guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else {
                 return .failure(NSError(domain: "ImageError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not read source image"]))
             }
@@ -132,7 +142,7 @@ class CompressionManager: ObservableObject {
             }
             
             let options: [String: Any] = [
-                kCGImageDestinationLossyCompressionQuality as String: imageQuality,
+                kCGImageDestinationLossyCompressionQuality as String: compressionQuality,
                 kCGImageDestinationOptimizeColorForSharing as String: true
             ]
             
@@ -146,7 +156,7 @@ class CompressionManager: ObservableObject {
         }.value
     }
     
-    // MARK: - PDF Compression
+    // PDF Compression
     
     private func compressPDFType(at url: URL, to outputDir: URL) async -> Result<URL, Error> {
         return await Task.detached(priority: .userInitiated) { () -> Result<URL, Error> in
@@ -163,13 +173,31 @@ class CompressionManager: ObservableObject {
                 return .failure(NSError(domain: "PDFError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid PDF"]))
             }
             
-            // PDF Compression Strategy:
-            // Best effort using PDFKit write options
-            if pdfDoc.write(to: destURL) {
-                 return .success(destURL)
+            guard let context = CGContext(destURL as CFURL, mediaBox: nil, nil) else {
+                 return .failure(NSError(domain: "PDFError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Could not create PDF Context"]))
             }
             
-            return .failure(NSError(domain: "PDFError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Could not write PDF"]))
+           
+            for i in 0..<pdfDoc.pageCount {
+                guard let page = pdfDoc.page(at: i) else { continue }
+                var mediaBox = page.bounds(for: .mediaBox)
+                let data = Data(bytes: &mediaBox, count: MemoryLayout<CGRect>.size) as CFData
+                let pageInfo = [kCGPDFContextMediaBox as String: data] as CFDictionary
+                context.beginPDFPage(pageInfo)
+                context.saveGState()
+
+                // Draw the page
+                page.draw(with: .mediaBox, to: context)
+
+                context.restoreGState()
+                context.endPDFPage()
+            }
+            
+            context.closePDF()
+            
+            
+            
+            return .success(destURL)
         }.value
     }
 }

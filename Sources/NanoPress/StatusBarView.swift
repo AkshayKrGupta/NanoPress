@@ -10,9 +10,9 @@ struct StatusBarView: View {
         HStack(spacing: 15) {
             // Processing Indicator or Icon
             if progress < 1.0 && progress > 0.0 {
-                ProgressView()
-                    .controlSize(.small)
-                    .progressViewStyle(.circular)
+                ProgressView(value: progress)
+                    .progressViewStyle(.linear)
+                    .frame(width: 80)
             } else {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundColor(progress >= 1.0 ? .green : .secondary)
@@ -34,25 +34,32 @@ struct StatusBarView: View {
             
             Spacer()
             
-            // Progress Bar
-            if totalCount > 0 {
-                ProgressView(value: progress)
-                    .progressViewStyle(.linear)
-                    .frame(width: 100)
-            }
+            Link("© 2025 NanoPress v1.0", destination: URL(string: "https://github.com/AkshayKrGupta/NanoPress")!)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .onHover { isHovering in
+                    if isHovering {
+                        NSCursor.pointingHand.push()
+                    } else {
+                        NSCursor.pop()
+                    }
+                }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
-        .background(Material.bar)
+        .background(.regularMaterial)
         .overlay(
             Rectangle()
                 .frame(height: 1)
-                .foregroundColor(Color(NSColor.separatorColor)),
+                .foregroundColor(Color(NSColor.separatorColor).opacity(0.5)),
             alignment: .top
         )
     }
 }
 
 #Preview {
-    StatusBarView(progress: 0.4, statusMessage: "Compressing Image.png", completedCount: 2, totalCount: 5)
+    ZStack {
+        Color.gray
+        StatusBarView(progress: 0.4, statusMessage: "Compressing Image.png", completedCount: 2, totalCount: 5)
+    }
 }

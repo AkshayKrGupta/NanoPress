@@ -14,7 +14,6 @@ let package = Package(
             name: "NanoPress",
             dependencies: [],
             path: "Sources/NanoPress",
-            exclude: ["instructions.md"],
             resources: [
                 .process("Resources")
             ]
