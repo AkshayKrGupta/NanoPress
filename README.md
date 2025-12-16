@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="Sources/NanoPress/Resources/AppIcon.png" width="128" height="128" alt="NanoPress Icon">
+</p>
+
 # NanoPress ⚡️
 
 [![Swift 5.9](https://img.shields.io/badge/Swift-5.9-orange.svg?style=flat&logo=swift)](https://developer.apple.com/swift/)
