@@ -1,3 +1,11 @@
+//
+//  ImageCompression.swift
+//  NanoPress
+//
+//  Created by Akshay Kumar Gupta on 16/12/25.
+//  Copyright © 2025 Akshay Kumar Gupta. All rights reserved.
+//
+
 import Foundation
 import ImageIO
 import UniformTypeIdentifiers
