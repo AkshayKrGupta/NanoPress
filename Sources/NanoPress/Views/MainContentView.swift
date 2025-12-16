@@ -3,13 +3,43 @@ import AppKit
 
 struct MainContentView: View {
     @ObservedObject var viewModel: ContentViewModel
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
 
         ZStack(alignment: .top) {
-            // Material Background
-            VisualEffectView(material: .sidebar, blendingMode: .behindWindow)
-                .ignoresSafeArea()
+
+            // Background
+            ZStack {
+                // Base Glass Blur
+                VisualEffectView(material: .underWindowBackground, blendingMode: .behindWindow)
+                
+                // Adaptive Gradient Tint
+                if colorScheme == .dark {
+                    // Dark Mode: Deep Purple/Blue
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.2, green: 0.0, blue: 0.4).opacity(0.15), // Deep Purple
+                            Color(red: 0.0, green: 0.2, blue: 0.5).opacity(0.10), // Deep Blue
+                            Color.black.opacity(0.2) // Slight darkening for contrast
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                } else {
+                    // Light Mode: Airy/Clean
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.5), // Whitewash top-left
+                            Color(red: 0.9, green: 0.95, blue: 1.0).opacity(0.3), // Pale Blue
+                            Color(red: 0.95, green: 0.9, blue: 1.0).opacity(0.2)  // Pale Lavender
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                }
+            }
+            .ignoresSafeArea()
             
             VStack(spacing: 0) {
                 // Custom Header
@@ -36,11 +66,6 @@ struct MainContentView: View {
                             Text("Compression Complete")
                                 .font(.proRounded(.title2, weight: .bold))
                             Spacer()
-                            Button("Done") {
-                                viewModel.compressor.completedResults.removeAll()
-                                viewModel.pendingFiles.removeAll()
-                            }
-                            .buttonStyle(.premiumAction)
                         }
                         .padding()
                         
@@ -53,6 +78,28 @@ struct MainContentView: View {
                             }
                             .padding()
                         }
+                        
+                        // Bottom Action Bar
+                        Divider()
+                            .background(Color.secondary.opacity(0.2))
+                        HStack {
+                            Button(action: {
+                                viewModel.compressor.completedResults.removeAll()
+                                viewModel.pendingFiles.removeAll()
+                            }) {
+                                HStack {
+                                    Image(systemName: "checkmark.circle.fill")
+                                    Text("Done / Start New Batch")
+                                        .font(.proRounded(.headline))
+                                }
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                            }
+                            .buttonStyle(.premiumAction)
+                            .controlSize(.large)
+                            .padding()
+                        }
+                        .background(.regularMaterial)
                     }
                     .transition(.opacity)
                 } else if viewModel.pendingFiles.isEmpty {
@@ -66,7 +113,10 @@ struct MainContentView: View {
                         ScrollView {
                             LazyVStack(spacing: 12) {
                                 ForEach(viewModel.pendingFiles, id: \.self) { url in
-                                    FileRowView(url: url) {
+                                    FileRowView(
+                                        url: url,
+                                        isProcessing: viewModel.compressor.currentProcessingURL == url
+                                    ) {
                                         withAnimation {
                                             if let index = viewModel.pendingFiles.firstIndex(of: url) {
                                                 viewModel.pendingFiles.remove(at: index)
@@ -76,7 +126,6 @@ struct MainContentView: View {
                                     .transition(.scale.combined(with: .opacity))
                                 }
                                 
-                                // Add Button below thumbnails
                                 Button(action: viewModel.selectFiles) {
                                     HStack {
                                         Image(systemName: "plus.circle.fill")
@@ -98,7 +147,7 @@ struct MainContentView: View {
                             .padding()
                         }
                         
-                        // Main Compress Button (Only if not processing)
+                        // Main Compress Button
                         if !viewModel.compressor.isProcessing {
                             Divider()
                                 .background(Color.secondary.opacity(0.2))
@@ -135,20 +184,22 @@ struct MainContentView: View {
             if viewModel.showNotification {
                 VStack {
                     HStack(spacing: 12) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
+                        Image(systemName: viewModel.isErrorNotification ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
+                            .foregroundStyle(viewModel.isErrorNotification ? .red : .green)
                             .font(.title3)
                         Text(viewModel.notificationMessage)
                             .font(.proRounded(.body, weight: .medium))
                             
-                        Button("Show in Finder") {
-                            let urls = viewModel.compressor.completedResults.map { $0.destinationURL }
-                            if !urls.isEmpty {
-                                NSWorkspace.shared.activateFileViewerSelecting(urls)
+                        if !viewModel.isErrorNotification {
+                            Button("Show in Finder") {
+                                let urls = viewModel.compressor.completedResults.map { $0.destinationURL }
+                                if !urls.isEmpty {
+                                    NSWorkspace.shared.activateFileViewerSelecting(urls)
+                                }
                             }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.small)
                         }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.small)
                         
                         Spacer()
                     }

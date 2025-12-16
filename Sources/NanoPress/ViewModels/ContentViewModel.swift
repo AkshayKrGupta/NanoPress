@@ -25,7 +25,9 @@ class ContentViewModel: ObservableObject {
     
     // Notification State
     @Published var showNotification = false
+
     @Published var notificationMessage = ""
+    @Published var isErrorNotification = false
     
     // Logic Helpers
     func selectFiles() {
@@ -41,12 +43,44 @@ class ContentViewModel: ObservableObject {
                 DispatchQueue.main.async {
                      withAnimation(.spring()) {
                          for url in openPanel.urls {
-                             if !self.pendingFiles.contains(url) {
-                                 self.pendingFiles.append(url)
-                             }
+                             self.addFile(url)
                          }
                      }
                 }
+            }
+        }
+    }
+    
+    func addFile(_ url: URL) {
+        // 1. Validation
+        let allowedExtensions = ["jpg", "jpeg", "png", "heic", "tif", "tiff", "pdf"]
+        let ext = url.pathExtension.lowercased()
+        guard allowedExtensions.contains(ext) else {
+            showError(message: "Unsupported file type: \(ext)")
+            return
+        }
+        
+        // 2. Deduplication
+        guard !pendingFiles.contains(url) else {
+            showError(message: "File already added: \(url.lastPathComponent)")
+            return
+        }
+        
+        // 3. Add
+        pendingFiles.append(url)
+    }
+
+    func showError(message: String) {
+        notificationMessage = message
+        isErrorNotification = true
+        withAnimation {
+            showNotification = true
+        }
+        // Auto dismiss
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            withAnimation {
+                self.showNotification = false
+                self.isErrorNotification = false
             }
         }
     }
@@ -58,9 +92,7 @@ class ContentViewModel: ObservableObject {
                     if let url = url {
                         DispatchQueue.main.async {
                             withAnimation(.spring()) {
-                                if !self.pendingFiles.contains(url) {
-                                    self.pendingFiles.append(url)
-                                }
+                                self.addFile(url)
                             }
                         }
                     }

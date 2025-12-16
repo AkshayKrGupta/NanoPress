@@ -3,6 +3,7 @@ import AppKit
 
 struct FileRowView: View {
     let url: URL
+    let isProcessing: Bool
     let onRemove: () -> Void
     @State private var thumbnail: NSImage? = nil
     
@@ -22,11 +23,16 @@ struct FileRowView: View {
             
             Spacer()
             
-            Button(action: onRemove) {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundStyle(.secondary.opacity(0.5))
+            if isProcessing {
+                ProgressView()
+                    .controlSize(.small)
+            } else {
+                Button(action: onRemove) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary.opacity(0.5))
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
         }
         .padding(12)
         .background(

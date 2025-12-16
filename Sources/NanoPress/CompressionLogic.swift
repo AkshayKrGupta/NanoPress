@@ -38,6 +38,7 @@ class CompressionManager: ObservableObject {
     @Published var statusMessage: String = "Ready"
     @Published var completedResults: [CompressionResult] = []
     @Published var completedCount = 0
+    @Published var currentProcessingURL: URL? = nil
     
     enum OutputStrategy {
         case specific(URL)
@@ -56,11 +57,13 @@ class CompressionManager: ObservableObject {
         self.completedCount = 0
         self.completedResults = []
         self.statusMessage = "Starting..."
+        self.currentProcessingURL = nil
         
         Task {
             let total = Double(urls.count)
             
             for (index, url) in urls.enumerated() {
+                self.currentProcessingURL = url
                 self.statusMessage = "Processing \(url.lastPathComponent)..."
                 self.progress = Double(index) / total
                 
@@ -79,11 +82,19 @@ class CompressionManager: ObservableObject {
                 let result: Result<URL, Error>
                 
                 if ["jpg", "jpeg", "png", "heic", "tif", "tiff"].contains(fileExtension) {
-                    result = await compressImageType(at: url, to: outputDir)
+                    let res = await compressImageType(at: url, to: outputDir)
+                    switch res {
+                    case .success(let u): result = .success(u)
+                    case .failure(let e): result = .failure(e)
+                    }
                 } else if fileExtension == "pdf" {
-                    result = await compressPDFType(at: url, to: outputDir)
+                    let res = await compressPDFType(at: url, to: outputDir)
+                     switch res {
+                    case .success(let u): result = .success(u)
+                    case .failure(let e): result = .failure(e)
+                    }
                 } else {
-                    result = .failure(NSError(domain: "NanoPressError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Unsupported format"]))
+                    result = .failure(AppError.unsupportedFormat(fileExtension))
                 }
                 
                 // Handle Result
@@ -113,16 +124,20 @@ class CompressionManager: ObservableObject {
             // Finalize
             self.statusMessage = "Batch Complete"
             self.progress = 1.0
+            // Finalize
+            self.statusMessage = "Batch Complete"
+            self.progress = 1.0
             self.isProcessing = false
+            self.currentProcessingURL = nil
         }
     }
     
     // Image Compression
     
-    private func compressImageType(at url: URL, to outputDir: URL) async -> Result<URL, Error> {
-        return await Task.detached(priority: .userInitiated) { [compressionQuality] () -> Result<URL, Error> in
+    private func compressImageType(at url: URL, to outputDir: URL) async -> Result<URL, AppError> {
+        return await Task.detached(priority: .userInitiated) { [compressionQuality] () -> Result<URL, AppError> in
             guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else {
-                return .failure(NSError(domain: "ImageError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not read source image"]))
+                return .failure(.invalidInput(url.lastPathComponent))
             }
             
             let filename = url.deletingPathExtension().lastPathComponent
@@ -138,7 +153,7 @@ class CompressionManager: ObservableObject {
             // Identify correct type
             guard let utType = UTType(filenameExtension: ext),
                   let destination = CGImageDestinationCreateWithURL(destURL as CFURL, utType.identifier as CFString, 1, nil) else {
-                return .failure(NSError(domain: "ImageError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Could not create destination"]))
+                return .failure(.conversionFailed)
             }
             
             let options: [String: Any] = [
@@ -151,15 +166,15 @@ class CompressionManager: ObservableObject {
             if CGImageDestinationFinalize(destination) {
                 return .success(destURL)
             } else {
-                return .failure(NSError(domain: "ImageError", code: 3, userInfo: [NSLocalizedDescriptionKey: "Compression failed"]))
+                return .failure(.saveFailed)
             }
         }.value
     }
     
     // PDF Compression
     
-    private func compressPDFType(at url: URL, to outputDir: URL) async -> Result<URL, Error> {
-        return await Task.detached(priority: .userInitiated) { () -> Result<URL, Error> in
+    private func compressPDFType(at url: URL, to outputDir: URL) async -> Result<URL, AppError> {
+        return await Task.detached(priority: .userInitiated) { () -> Result<URL, AppError> in
             let filename = url.deletingPathExtension().lastPathComponent
             let destURL: URL
             
@@ -170,34 +185,26 @@ class CompressionManager: ObservableObject {
             }
             
             guard let pdfDoc = PDFDocument(url: url) else {
-                return .failure(NSError(domain: "PDFError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid PDF"]))
+                return .failure(.invalidInput(url.lastPathComponent))
             }
             
-            guard let context = CGContext(destURL as CFURL, mediaBox: nil, nil) else {
-                 return .failure(NSError(domain: "PDFError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Could not create PDF Context"]))
+            // Load Quartz Filter
+            let filterPath = "/System/Library/Filters/Reduce File Size.qfilter"
+            let filterURL = URL(fileURLWithPath: filterPath)
+            
+            var options: [PDFDocumentWriteOption: Any] = [:]
+            if let filter = QuartzFilter(url: filterURL) {
+                options[PDFDocumentWriteOption(rawValue: "QuartzFilter")] = filter
+            } else {
+                 return .failure(.quartzFilterMissing)
             }
             
-           
-            for i in 0..<pdfDoc.pageCount {
-                guard let page = pdfDoc.page(at: i) else { continue }
-                var mediaBox = page.bounds(for: .mediaBox)
-                let data = Data(bytes: &mediaBox, count: MemoryLayout<CGRect>.size) as CFData
-                let pageInfo = [kCGPDFContextMediaBox as String: data] as CFDictionary
-                context.beginPDFPage(pageInfo)
-                context.saveGState()
-
-                // Draw the page
-                page.draw(with: .mediaBox, to: context)
-
-                context.restoreGState()
-                context.endPDFPage()
+            // Apply Filter and Save
+            if pdfDoc.write(to: destURL, withOptions: options) {
+                 return .success(destURL)
+            } else {
+                 return .failure(.saveFailed)
             }
-            
-            context.closePDF()
-            
-            
-            
-            return .success(destURL)
         }.value
     }
 }

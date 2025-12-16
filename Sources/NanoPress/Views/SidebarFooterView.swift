@@ -19,7 +19,7 @@ struct SidebarFooterView: View {
                     }
                 }
 
-            Text("Last Build Date: 14 Dec 2025")
+            Text("Build: 0.5-16.12.2025")
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
         }

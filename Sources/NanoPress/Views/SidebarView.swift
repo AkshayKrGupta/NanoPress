@@ -9,7 +9,7 @@ struct SidebarView: View {
                 Section(header: Text("Settings")) {
                     VStack(alignment: .leading, spacing: 15) {
                         
-                            Label("Compression Level", systemImage: "slider.horizontal.3")
+                            Label("Image Compression Level", systemImage: "slider.horizontal.3")
                                 .font(.proRounded(.subheadline, weight: .medium))
                             
                             VStack(spacing: 8) {

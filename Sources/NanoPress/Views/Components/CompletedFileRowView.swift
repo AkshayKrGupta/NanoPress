@@ -53,6 +53,17 @@ struct CompletedFileRowView: View {
             Spacer()
             
             Button(action: {
+                NSWorkspace.shared.open(result.destinationURL)
+            }) {
+                Image(systemName: "eye.fill")
+                    .font(.body)
+                    .foregroundStyle(.blue)
+            }
+            .buttonStyle(.plain)
+            .help("Preview")
+            .padding(.trailing, 8)
+            
+            Button(action: {
                 NSWorkspace.shared.activateFileViewerSelecting([result.destinationURL])
             }) {
                 Image(systemName: "magnifyingglass")

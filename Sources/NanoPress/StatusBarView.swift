@@ -34,7 +34,7 @@ struct StatusBarView: View {
             
             Spacer()
             
-            Link("© 2025 NanoPress v1.0", destination: URL(string: "https://github.com/AkshayKrGupta/NanoPress")!)
+            Link("© 2025 NanoPress v0.5-beta", destination: URL(string: "https://github.com/AkshayKrGupta/NanoPress")!)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
                 .onHover { isHovering in
