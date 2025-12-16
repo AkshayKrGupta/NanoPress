@@ -16,4 +16,20 @@ enum AppTheme: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+enum PDFCompressionMode: String, CaseIterable, Identifiable {
+    case standard = "Standard"
+    case aggressive = "Aggressive"
+    
+    var id: String { rawValue }
+    
+    var description: String {
+        switch self {
+        case .standard:
+            return "Balanced quality and size"
+        case .aggressive:
+            return "Maximum compression, lower quality"
+        }
+    }
+}
+
 

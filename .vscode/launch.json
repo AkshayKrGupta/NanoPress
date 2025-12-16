@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:NanoPress}",
+            "name": "Debug NanoPress",
+            "target": "NanoPress",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug NanoPress"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:NanoPress}",
+            "name": "Release NanoPress",
+            "target": "NanoPress",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release NanoPress"
+        }
+    ]
+}

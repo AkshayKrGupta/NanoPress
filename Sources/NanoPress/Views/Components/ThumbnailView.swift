@@ -21,8 +21,19 @@ struct ThumbnailView: View {
         .frame(width: 40, height: 40)
         .cornerRadius(4)
         .onAppear {
-             generateThumbnail()
+             loadThumbnail()
         }
+    }
+    
+    func loadThumbnail() {
+        // Check cache first
+        if let cached = ThumbnailCache.shared.get(for: url) {
+            self.thumbnail = cached
+            return
+        }
+        
+        // Generate if not cached
+        generateThumbnail()
     }
     
     func generateThumbnail() {
@@ -34,6 +45,8 @@ struct ThumbnailView: View {
             if let thumbnail = thumbnail {
                 DispatchQueue.main.async {
                     self.thumbnail = thumbnail.nsImage
+                    // Cache for future use
+                    ThumbnailCache.shared.set(thumbnail.nsImage, for: self.url)
                 }
             }
         }

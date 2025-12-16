@@ -11,6 +11,25 @@ struct NanoPressApp: App {
         .windowStyle(HiddenTitleBarWindowStyle())
         .commands {
             SidebarCommands()
+            
+            CommandGroup(after: .newItem) {
+                Button("Browse Files...") {
+                    NotificationCenter.default.post(name: NSNotification.Name("BrowseFiles"), object: nil)
+                }
+                .keyboardShortcut("o", modifiers: .command)
+                
+                Button("Start Compression") {
+                    NotificationCenter.default.post(name: NSNotification.Name("StartCompression"), object: nil)
+                }
+                .keyboardShortcut("r", modifiers: .command)
+                
+                Divider()
+                
+                Button("Remove Selected") {
+                    NotificationCenter.default.post(name: NSNotification.Name("RemoveSelected"), object: nil)
+                }
+                .keyboardShortcut(.delete, modifiers: .command)
+            }
         }
     }
 }

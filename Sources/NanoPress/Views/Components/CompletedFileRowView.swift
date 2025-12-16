@@ -53,6 +53,20 @@ struct CompletedFileRowView: View {
             Spacer()
             
             Button(action: {
+                QuickLookComparisonManager.shared.showComparison(
+                    original: result.originalURL,
+                    compressed: result.destinationURL
+                )
+            }) {
+                Image(systemName: "rectangle.split.2x1")
+                    .font(.body)
+                    .foregroundStyle(.purple)
+            }
+            .buttonStyle(.plain)
+            .help("Compare Before/After")
+            .padding(.trailing, 4)
+            
+            Button(action: {
                 NSWorkspace.shared.open(result.destinationURL)
             }) {
                 Image(systemName: "eye.fill")

@@ -4,7 +4,9 @@ import AppKit
 struct FileRowView: View {
     let url: URL
     let isProcessing: Bool
+    let isSelected: Bool
     let onRemove: () -> Void
+    let onSelect: () -> Void
     @State private var thumbnail: NSImage? = nil
     
     var body: some View {
@@ -39,7 +41,15 @@ struct FileRowView: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(.regularMaterial)
                 .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
+                )
         )
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onSelect()
+        }
         .onDrag {
             return NSItemProvider(contentsOf: url) ?? NSItemProvider()
         }

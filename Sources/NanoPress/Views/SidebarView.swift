@@ -12,6 +12,21 @@ struct SidebarView: View {
                             Label("Image Compression Level", systemImage: "slider.horizontal.3")
                                 .font(.proRounded(.subheadline, weight: .medium))
                             
+                            // Preset Buttons
+                            HStack(spacing: 8) {
+                                PresetButton(title: "Low", subtitle: "50%", value: 0.5, 
+                                           currentValue: $viewModel.compressor.compressionQuality)
+                                PresetButton(title: "Medium", subtitle: "75%", value: 0.75, 
+                                           currentValue: $viewModel.compressor.compressionQuality)
+                                PresetButton(title: "High", subtitle: "90%", value: 0.9, 
+                                           currentValue: $viewModel.compressor.compressionQuality)
+                            }
+                            
+                            Text("Custom")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .padding(.top, 4)
+                            
                             VStack(spacing: 8) {
                                 Slider(value: $viewModel.compressor.compressionQuality, in: 0.0...1.0)
                                     .tint(.accentColor)
@@ -29,6 +44,35 @@ struct SidebarView: View {
                             }
                         
 
+                    }
+                    .padding(.vertical, 8)
+                }
+
+                Divider()
+                .padding(.bottom, 8)
+                
+                Section(header: Text("PDF Settings")) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Label("Compression Mode", systemImage: "doc.text.fill")
+                            .font(.proRounded(.subheadline, weight: .medium))
+                        
+                        Picker("", selection: $viewModel.compressor.pdfCompressionMode) {
+                            ForEach(PDFCompressionMode.allCases) { mode in
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(mode.rawValue)
+                                        .font(.body)
+                                    Text(mode.description)
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(2)
+                                        .multilineTextAlignment(.leading)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                                .tag(mode)
+                            }
+                        }
+                        .pickerStyle(.radioGroup)
+                        .labelsHidden()
                     }
                     .padding(.vertical, 8)
                 }

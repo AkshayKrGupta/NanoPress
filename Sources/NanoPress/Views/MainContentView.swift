@@ -115,14 +115,21 @@ struct MainContentView: View {
                                 ForEach(viewModel.pendingFiles, id: \.self) { url in
                                     FileRowView(
                                         url: url,
-                                        isProcessing: viewModel.compressor.currentProcessingURL == url
-                                    ) {
-                                        withAnimation {
-                                            if let index = viewModel.pendingFiles.firstIndex(of: url) {
-                                                viewModel.pendingFiles.remove(at: index)
+                                        isProcessing: viewModel.compressor.currentProcessingURL == url,
+                                        isSelected: viewModel.selectedFiles.contains(url),
+                                        onRemove: {
+                                            withAnimation {
+                                                if let index = viewModel.pendingFiles.firstIndex(of: url) {
+                                                    viewModel.pendingFiles.remove(at: index)
+                                                    viewModel.selectedFiles.remove(url)
+                                                }
                                             }
+                                        },
+                                        onSelect: {
+                                            let modifiers = NSEvent.modifierFlags
+                                            viewModel.toggleFileSelection(url, modifiers: modifiers)
                                         }
-                                    }
+                                    )
                                     .transition(.scale.combined(with: .opacity))
                                 }
                                 
@@ -162,6 +169,28 @@ struct MainContentView: View {
                                     .padding(.vertical, 5)
                                 }
                                 .buttonStyle(.premiumAction)
+                                .controlSize(.large)
+                                .padding()
+                            }
+                            .background(.regularMaterial)
+                        } else {
+                            // Cancel button when processing
+                            Divider()
+                                .background(Color.secondary.opacity(0.2))
+                            HStack {
+                                Button(action: {
+                                    viewModel.compressor.cancelCompression()
+                                }) {
+                                    HStack {
+                                        Image(systemName: "xmark.circle.fill")
+                                        Text("Cancel")
+                                            .font(.proRounded(.headline))
+                                    }
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 5)
+                                }
+                                .buttonStyle(.bordered)
+                                .tint(.red)
                                 .controlSize(.large)
                                 .padding()
                             }
@@ -219,6 +248,13 @@ struct MainContentView: View {
         .onDrop(of: [.fileURL], isTargeted: $viewModel.isDraggingOver) { providers in
             viewModel.handleDrop(providers: providers)
             return true
+        }
+        .onAppear {
+            // Set up keyboard monitoring
+            NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+                viewModel.handleKeyCommand(event.characters ?? "", modifiers: event.modifierFlags)
+                return event
+            }
         }
         .onChange(of: viewModel.compressor.isProcessing) { _, newValue in
             if !newValue && !viewModel.compressor.completedResults.isEmpty {
