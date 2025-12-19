@@ -10,14 +10,14 @@ import SwiftUI
 
 struct SidebarFooterView: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Divider()
-                .padding(.bottom, 8)
-            
-
+        VStack(alignment: .leading, spacing: NanoDesign.Spacing.xs) {
+            // Subtle separator
+            Rectangle()
+                .fill(NanoDesign.separatorColor)
+                .frame(height: NanoDesign.Border.separator)
             
             Link("Built with ❤️ by Akshay K Gupta", destination: URL(string: "https://www.linkedin.com/in/akshay-kr-gupta/")!)
-                .font(.caption2)
+                .font(.secondaryText(size: 10))
                 .foregroundStyle(.tertiary)
                 .onHover { isHovering in
                     if isHovering {
@@ -27,11 +27,12 @@ struct SidebarFooterView: View {
                     }
                 }
 
-            Text("Build: 0.5-16.12.2025")
-                .font(.caption2)
+            Text("Build: 0.5-19.12.2025")
+                .font(.secondaryText(size: 10))
                 .foregroundStyle(.tertiary)
         }
-        .padding()
-        .background(.regularMaterial)
+        .padding(NanoDesign.Spacing.md)
+        .background(.ultraThinMaterial)
     }
 }
+

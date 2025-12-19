@@ -18,16 +18,16 @@ struct FileRowView: View {
     @State private var thumbnail: NSImage? = nil
     
     var body: some View {
-        HStack(spacing: 15) {
+        HStack(spacing: NanoDesign.Spacing.lg) {
             ThumbnailView(url: url)
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: NanoDesign.Spacing.xs) {
                 Text(url.lastPathComponent)
-                    .font(.proRounded(.body, weight: .medium))
+                    .font(.bodyMedium)
                     .lineLimit(1)
                 
                 Text(formatSize(url))
-                    .font(.proRounded(.caption))
+                    .font(.secondaryText(size: 11))
                     .foregroundStyle(.secondary)
             }
             
@@ -39,21 +39,36 @@ struct FileRowView: View {
             } else {
                 Button(action: onRemove) {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.secondary.opacity(0.5))
+                        .uiIconStyle()
+                        .foregroundStyle(.secondary.opacity(0.6))
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(12)
+        .padding(NanoDesign.Spacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: NanoDesign.CornerRadius.large)
                 .fill(.regularMaterial)
-                .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
+                    RoundedRectangle(cornerRadius: NanoDesign.CornerRadius.large)
+                        .strokeBorder(
+                            isSelected ? Color.accentColor : NanoDesign.separatorColor,
+                            lineWidth: isSelected ? 2 : NanoDesign.Border.separator
+                        )
+                )
+                .shadow(
+                    color: .black.opacity(NanoDesign.Shadow.cardOpacity),
+                    radius: NanoDesign.Shadow.cardRadius,
+                    x: 0,
+                    y: NanoDesign.Shadow.cardY
                 )
         )
+        .scaleEffect(isSelected ? 1.02 : 1.0)
+        .shadow(
+            color: isSelected ? Color.accentColor.opacity(0.2) : .clear,
+            radius: isSelected ? 6 : 0
+        )
+        .animation(.selectionSpring, value: isSelected)
         .contentShape(Rectangle())
         .onTapGesture {
             onSelect()

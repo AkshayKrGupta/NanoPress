@@ -15,7 +15,7 @@ struct StatusBarView: View {
     let totalCount: Int
     
     var body: some View {
-        HStack(spacing: 15) {
+        HStack(spacing: NanoDesign.Spacing.lg) {
             // Processing Indicator or Icon
             if progress < 1.0 && progress > 0.0 {
                 ProgressView(value: progress)
@@ -23,18 +23,20 @@ struct StatusBarView: View {
                     .frame(width: 80)
             } else {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(progress >= 1.0 ? .green : .secondary)
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundColor(progress >= 1.0 ? NanoDesign.success : .secondary)
+                    .font(.system(size: 16, weight: .medium))
             }
             
             // Status Text
             VStack(alignment: .leading, spacing: 2) {
                 Text(statusMessage)
-                    .font(.caption)
+                    .font(.secondaryText(size: 12))
                     .fontWeight(.medium)
                 
                 if totalCount > 0 {
                     Text("\(completedCount) of \(totalCount) items completed")
-                        .font(.caption2)
+                        .font(.secondaryText(size: 10))
                         .foregroundStyle(.secondary)
                 }
             }
@@ -43,7 +45,7 @@ struct StatusBarView: View {
             Spacer()
             
             Link("© 2025 NanoPress v0.5-beta", destination: URL(string: "https://github.com/AkshayKrGupta/NanoPress")!)
-                .font(.caption2)
+                .font(.secondaryText(size: 10))
                 .foregroundStyle(.secondary)
                 .onHover { isHovering in
                     if isHovering {
@@ -53,13 +55,13 @@ struct StatusBarView: View {
                     }
                 }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(.regularMaterial)
+        .padding(.horizontal, NanoDesign.Spacing.lg)
+        .padding(.vertical, NanoDesign.Spacing.md)
+        .background(.ultraThinMaterial)
         .overlay(
             Rectangle()
-                .frame(height: 1)
-                .foregroundColor(Color(NSColor.separatorColor).opacity(0.5)),
+                .frame(height: NanoDesign.Border.separator)
+                .foregroundColor(NanoDesign.separatorColor),
             alignment: .top
         )
     }

@@ -13,46 +13,47 @@ struct CompletedFileRowView: View {
     let result: CompressionResult
     
     var body: some View {
-        HStack(spacing: 15) {
+        HStack(spacing: NanoDesign.Spacing.lg) {
             ThumbnailView(url: result.originalURL) 
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: NanoDesign.Spacing.xs) {
                 Text(result.originalURL.lastPathComponent)
-                    .font(.proRounded(.body, weight: .medium))
+                    .font(.bodyMedium)
                     .lineLimit(1)
                 
                 if let error = result.error {
                     // Error State
-                    HStack(spacing: 4) {
+                    HStack(spacing: NanoDesign.Spacing.xs) {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.caption2)
-                            .foregroundStyle(.red)
+                            .uiIconStyle()
+                            .foregroundStyle(NanoDesign.destructive)
                         Text(error)
-                            .font(.proRounded(.caption))
-                            .foregroundStyle(.red)
+                            .font(.secondaryText(size: 11))
+                            .foregroundStyle(NanoDesign.destructive)
                             .lineLimit(1)
                     }
                 } else {
                     // Success State
-                    HStack(spacing: 8) {
+                    HStack(spacing: NanoDesign.Spacing.sm) {
                         Text(formatBytes(result.originalSize))
-                            .font(.proRounded(.caption))
+                            .font(.secondaryText(size: 11))
                             .strikethrough(true)
                             .foregroundStyle(.secondary)
                         
                         Image(systemName: "arrow.right")
-                            .font(.caption2)
+                            .font(.system(size: 10, weight: .medium))
                             .foregroundStyle(.secondary)
                             
                         Text(formatBytes(result.newSize))
-                            .font(.proRounded(.caption, weight: .semibold))
+                            .font(.secondaryText(size: 12))
+                            .fontWeight(.semibold)
                             .foregroundStyle(.primary)
                     
                         if result.originalSize > 0 {
                             let saving = Double(result.originalSize - result.newSize) / Double(result.originalSize) * 100
                             Text("(-\(Int(saving))%)")
-                                .font(.caption)
-                                .foregroundStyle(saving > 0 ? .green : .orange)
+                                .font(.secondaryText(size: 11))
+                                .foregroundStyle(saving > 0 ? NanoDesign.success : .orange)
                         }
                     }
                 }
@@ -60,54 +61,69 @@ struct CompletedFileRowView: View {
             
             Spacer()
             
-            Button(action: {
-                QuickLookComparisonManager.shared.showComparison(
-                    original: result.originalURL,
-                    compressed: result.destinationURL
-                )
-            }) {
-                Image(systemName: "rectangle.split.2x1")
-                    .font(.body)
-                    .foregroundStyle(.purple)
+            // Action buttons with UI icon styling
+            HStack(spacing: NanoDesign.Spacing.sm) {
+                Button(action: {
+                    QuickLookComparisonManager.shared.showComparison(
+                        original: result.originalURL,
+                        compressed: result.destinationURL
+                    )
+                }) {
+                    Image(systemName: "rectangle.split.2x1")
+                        .uiIconStyle()
+                        .foregroundStyle(.purple)
+                }
+                .buttonStyle(.plain)
+                .help("Compare Before/After")
+                
+                Button(action: {
+                    NSWorkspace.shared.open(result.destinationURL)
+                }) {
+                    Image(systemName: "eye.fill")
+                        .uiIconStyle()
+                        .foregroundStyle(.blue)
+                }
+                .buttonStyle(.plain)
+                .help("Preview")
+                
+                Button(action: {
+                    NSWorkspace.shared.activateFileViewerSelecting([result.destinationURL])
+                }) {
+                    Image(systemName: "magnifyingglass")
+                        .uiIconStyle()
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Show in Finder")
             }
-            .buttonStyle(.plain)
-            .help("Compare Before/After")
-            .padding(.trailing, 4)
             
-            Button(action: {
-                NSWorkspace.shared.open(result.destinationURL)
-            }) {
-                Image(systemName: "eye.fill")
-                    .font(.body)
-                    .foregroundStyle(.blue)
-            }
-            .buttonStyle(.plain)
-            .help("Preview")
-            .padding(.trailing, 8)
-            
-            Button(action: {
-                NSWorkspace.shared.activateFileViewerSelecting([result.destinationURL])
-            }) {
-                Image(systemName: "magnifyingglass")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            .buttonStyle(.plain)
-            .help("Show in Finder")
-            
+            // Status icon with hierarchical rendering
             if result.error != nil {
                 Image(systemName: "xmark.circle.fill")
-                    .foregroundStyle(.red)
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(NanoDesign.destructive)
+                    .font(.system(size: 18, weight: .medium))
             } else {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(NanoDesign.success)
+                    .font(.system(size: 18, weight: .medium))
             }
         }
-        .padding(12)
+        .padding(NanoDesign.Spacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: NanoDesign.CornerRadius.large)
                 .fill(.regularMaterial)
-                .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+                .overlay(
+                    RoundedRectangle(cornerRadius: NanoDesign.CornerRadius.large)
+                        .strokeBorder(NanoDesign.separatorColor, lineWidth: NanoDesign.Border.separator)
+                )
+                .shadow(
+                    color: .black.opacity(NanoDesign.Shadow.cardOpacity),
+                    radius: NanoDesign.Shadow.cardRadius,
+                    x: 0,
+                    y: NanoDesign.Shadow.cardY
+                )
         )
         .onDrag {
             return NSItemProvider(contentsOf: result.destinationURL) ?? NSItemProvider()

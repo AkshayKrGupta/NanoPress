@@ -14,40 +14,47 @@ struct EmptyStateView: View {
     var onBrowse: () -> Void
     
     var body: some View {
-        VStack(spacing: 25) {
+        VStack(spacing: NanoDesign.Spacing.xl) {
             ZStack {
                 Circle()
-                    .strokeBorder(isDraggingOver ? Color.accentColor : Color.secondary.opacity(0.2), style: StrokeStyle(lineWidth: 2, dash: [10]))
-                    .background(Circle().fill(isDraggingOver ? Color.accentColor.opacity(0.1) : Color.clear))
-                    .frame(width: 140, height: 140)
+                    .strokeBorder(
+                        isDraggingOver ? Color.accentColor : NanoDesign.separatorColor,
+                        style: StrokeStyle(lineWidth: 2, dash: [10])
+                    )
+                    .background(
+                        Circle()
+                            .fill(isDraggingOver ? Color.accentColor.opacity(0.1) : Color.clear)
+                    )
+                    .frame(width: 160, height: 160)
                     .scaleEffect(isDraggingOver ? 1.05 : 1.0)
-                    .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isDraggingOver)
+                    .animation(.selectionSpring, value: isDraggingOver)
                 
-                // App Logo or Symbol
+                // Hero Icon: 70pt light weight with hierarchical rendering
                 Image(systemName: "square.and.arrow.down")
-                    .font(.system(size: 50, weight: .light))
-                    .foregroundStyle(isDraggingOver ? Color.accentColor : .secondary)
+                    .heroIconStyle(size: 70)
+                    .foregroundStyle(isDraggingOver ? NanoDesign.accentGradient : LinearGradient(colors: [.secondary], startPoint: .leading, endPoint: .trailing))
             }
             
-            VStack(spacing: 12) {
+            VStack(spacing: NanoDesign.Spacing.md) {
                 Text("Drop Files Here")
-                    .font(.proRounded(.title2, weight: .semibold))
+                    .font(.sectionHeader(size: 24))
                 
-                Text("- or -")
+                Text("— or —")
                     .foregroundStyle(.secondary)
-                    .font(.caption)
+                    .font(.secondaryText(size: 12))
                 
                 Button("Browse Files") {
                      onBrowse()
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.regular)
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
                 
-                Text("Support for JPG, PNG, and PDF")
-                    .font(.proRounded(.footnote))
+                Text("Supports JPG, PNG, HEIC, TIFF, and PDF")
+                    .font(.secondaryText(size: 11))
                     .foregroundStyle(.secondary)
-                    .padding(.top, 8)
+                    .padding(.top, NanoDesign.Spacing.sm)
             }
         }
     }
 }
+

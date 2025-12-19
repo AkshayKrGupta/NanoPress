@@ -27,7 +27,7 @@ struct ThumbnailView: View {
             }
         }
         .frame(width: 40, height: 40)
-        .cornerRadius(4)
+        .cornerRadius(NanoDesign.CornerRadius.small)
         .onAppear {
              loadThumbnail()
         }

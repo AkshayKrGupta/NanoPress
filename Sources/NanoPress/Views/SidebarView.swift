@@ -14,11 +14,16 @@ struct SidebarView: View {
     var body: some View {
         VStack(spacing: 0) {
             List {
-                Section(header: Text("Settings")) {
-                    VStack(alignment: .leading, spacing: 15) {
+                Section(header: 
+                    Text("Settings")
+                        .font(.sectionHeader(size: 22))
+                        .foregroundStyle(NanoDesign.accentGradient)
+                ) {
+                    VStack(alignment: .leading, spacing: NanoDesign.Spacing.lg) {
                         
                             Label("Image Compression Level", systemImage: "slider.horizontal.3")
-                                .font(.proRounded(.subheadline, weight: .medium))
+                                .font(.bodyMedium)
+                                .symbolRenderingMode(.hierarchical)
                             
                             // Preset Buttons
                             HStack(spacing: 8) {
@@ -31,11 +36,11 @@ struct SidebarView: View {
                             }
                             
                             Text("Custom")
-                                .font(.caption)
+                                .font(.secondaryText(size: 11))
                                 .foregroundStyle(.secondary)
-                                .padding(.top, 4)
+                                .padding(.top, NanoDesign.Spacing.xs)
                             
-                            VStack(spacing: 8) {
+                            VStack(spacing: NanoDesign.Spacing.sm) {
                                 Slider(value: $viewModel.compressor.compressionQuality, in: 0.0...1.0)
                                     .tint(.accentColor)
                                 
@@ -43,26 +48,32 @@ struct SidebarView: View {
                                     Text("Low")
                                     Spacer()
                                     Text("\(Int(viewModel.compressor.compressionQuality * 100))%")
-                                        .bold()
+                                        .fontWeight(.semibold)
                                     Spacer()
                                     Text("High")
                                 }
-                                .font(.caption2)
+                                .font(.secondaryText(size: 10))
                                 .foregroundStyle(.secondary)
                             }
                         
 
                     }
-                    .padding(.vertical, 8)
+                    .padding(.vertical, NanoDesign.Spacing.sm)
                 }
 
                 Divider()
-                .padding(.bottom, 8)
+                .padding(.bottom, NanoDesign.Spacing.sm)
                 
-                Section(header: Text("PDF Settings")) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Label("Compression Mode", systemImage: "doc.text.fill")
-                            .font(.proRounded(.subheadline, weight: .medium))
+/*                 Section(header: 
+                    Text("PDF Settings")
+                        .font(.sectionHeader(size: 22))
+                        .foregroundStyle(NanoDesign.accentGradient)
+                )  */
+                Section {
+                    VStack(alignment: .leading, spacing: NanoDesign.Spacing.md) {
+                        Label("PDF Compression Mode", systemImage: "doc.text.fill")
+                            .font(.bodyMedium)
+                            .symbolRenderingMode(.hierarchical)
                         
                         Picker("", selection: $viewModel.compressor.pdfCompressionMode) {
                             ForEach(PDFCompressionMode.allCases) { mode in
@@ -82,18 +93,29 @@ struct SidebarView: View {
                         .pickerStyle(.radioGroup)
                         .labelsHidden()
                     }
-                    .padding(.vertical, 8)
+                    .padding(.vertical, NanoDesign.Spacing.sm)
                 }
                 
-                Section(header: Text("Appearance")) {
-                    HStack {
+                Section(header: 
+                    Text("Appearance")
+                        .font(.sectionHeader(size: 22))
+                        .foregroundStyle(NanoDesign.accentGradient)
+                ) {
+                    HStack(spacing: NanoDesign.Spacing.sm) {
                         ForEach(AppTheme.allCases) { theme in
-                            Button(action: { viewModel.selectedTheme = theme }) {
+                            Button(action: { 
+                                withAnimation(.selectionSpring) {
+                                    viewModel.selectedTheme = theme 
+                                }
+                            }) {
                                 Image(systemName: viewModel.themeIcon(for: theme))
-                                    .frame(width: 20, height: 20)
+                                    .uiIconStyle()
+                                    .frame(width: 24, height: 24)
                             }
                             .buttonStyle(.bordered)
                             .tint(viewModel.selectedTheme == theme ? .accentColor : .secondary)
+                            .scaleEffect(viewModel.selectedTheme == theme ? 1.05 : 1.0)
+                            .animation(.selectionSpring, value: viewModel.selectedTheme)
                         }
                     }
                 }

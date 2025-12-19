@@ -40,11 +40,20 @@ struct PremiumButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .foregroundStyle(.white)
-            .background(Color.accentColor)
-            .cornerRadius(8)
-            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
-            .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
-            .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: NanoDesign.CornerRadius.small)
+                    .fill(NanoDesign.accentGradient)
+            )
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .animation(.quickSpring, value: configuration.isPressed)
+            .shadow(
+                color: Color(red: 0.4, green: 0.4, blue: 0.9).opacity(0.3),
+                radius: configuration.isPressed ? 2 : 4,
+                x: 0,
+                y: configuration.isPressed ? 1 : 2
+            )
     }
 }
 
@@ -66,25 +75,36 @@ struct PresetButton: View {
     var body: some View {
         VStack(spacing: 4) {
             Text(title)
-                .font(.caption)
+                .font(.secondaryText(size: 13))
                 .fontWeight(isSelected ? .semibold : .regular)
             Text(subtitle)
-                .font(.caption2)
+                .font(.secondaryText(size: 11))
                 .foregroundStyle(isSelected ? .primary : .secondary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
+        .padding(.vertical, NanoDesign.Spacing.sm)
         .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
+            RoundedRectangle(cornerRadius: NanoDesign.CornerRadius.small)
+                .fill(isSelected ? Color.accentColor.opacity(0.15) : Color.clear)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 6)
-                        .strokeBorder(isSelected ? Color.accentColor : Color.secondary.opacity(0.3), lineWidth: isSelected ? 2 : 1)
+                    RoundedRectangle(cornerRadius: NanoDesign.CornerRadius.small)
+                        .strokeBorder(
+                            isSelected ? Color.accentColor : NanoDesign.separatorColor,
+                            lineWidth: isSelected ? 2 : NanoDesign.Border.separator
+                        )
                 )
         )
+        .scaleEffect(isSelected ? 1.02 : 1.0)
+        .shadow(
+            color: isSelected ? Color.accentColor.opacity(0.25) : .clear,
+            radius: isSelected ? 6 : 0
+        )
+        .animation(.selectionSpring, value: isSelected)
         .contentShape(Rectangle())
         .onTapGesture {
-            currentValue = value
+            withAnimation(.selectionSpring) {
+                currentValue = value
+            }
         }
     }
 }

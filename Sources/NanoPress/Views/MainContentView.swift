@@ -50,8 +50,8 @@ struct MainContentView: View {
             .ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // Custom Header
-                HStack(spacing: 16) {
+                // Custom Header with gradient title
+                HStack(spacing: NanoDesign.Spacing.lg) {
                      if let imagePath = Bundle.module.path(forResource: "AppIcon", ofType: "png"),
                         let nsImage = NSImage(contentsOfFile: imagePath) {
                             Image(nsImage: nsImage)
@@ -59,12 +59,13 @@ struct MainContentView: View {
                                 .frame(width: 48, height: 48)
                      }
                      Text("NanoPress")
-                         .font(.system(size: 32, weight: .bold, design: .rounded))
+                         .font(.appTitle)
+                         .foregroundStyle(NanoDesign.accentGradient)
                      Spacer()
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 10)
-                .padding(.bottom, 16)
+                .padding(.horizontal, NanoDesign.Spacing.xl)
+                .padding(.top, NanoDesign.Spacing.sm)
+                .padding(.bottom, NanoDesign.Spacing.lg)
                 .background(.ultraThinMaterial)
                 
                 if !viewModel.compressor.completedResults.isEmpty && !viewModel.compressor.isProcessing {
@@ -72,13 +73,13 @@ struct MainContentView: View {
                     VStack {
                         HStack {
                             Text("Compression Complete")
-                                .font(.proRounded(.title2, weight: .bold))
+                                .font(.sectionHeader(size: 24))
                             Spacer()
                         }
                         .padding()
                         
                         ScrollView {
-                            LazyVStack(spacing: 12) {
+                            LazyVStack(spacing: NanoDesign.Spacing.md) {
                                 ForEach(viewModel.compressor.completedResults, id: \.self) { result in
                                     CompletedFileRowView(result: result)
                                         .transition(.opacity)
@@ -87,27 +88,26 @@ struct MainContentView: View {
                             .padding()
                         }
                         
-                        // Bottom Action Bar
+                        // Bottom Action Bar with ultraThinMaterial
                         Divider()
-                            .background(Color.secondary.opacity(0.2))
+                            .background(NanoDesign.separatorColor)
                         HStack {
                             Button(action: {
                                 viewModel.compressor.completedResults.removeAll()
                                 viewModel.pendingFiles.removeAll()
                             }) {
-                                HStack {
+                                HStack(spacing: NanoDesign.Spacing.sm) {
                                     Image(systemName: "checkmark.circle.fill")
+                                        .symbolRenderingMode(.hierarchical)
                                     Text("Done / Start New Batch")
-                                        .font(.proRounded(.headline))
+                                        .font(.bodyMedium)
                                 }
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 5)
                             }
-                            .buttonStyle(.premiumAction)
+                            .buttonStyle(.borderedProminent)
                             .controlSize(.large)
                             .padding()
                         }
-                        .background(.regularMaterial)
+                        .background(.ultraThinMaterial)
                     }
                     .transition(.opacity)
                 } else if viewModel.pendingFiles.isEmpty {
@@ -119,7 +119,7 @@ struct MainContentView: View {
                     // File List
                     VStack(spacing: 0) {
                         ScrollView {
-                            LazyVStack(spacing: 12) {
+                            LazyVStack(spacing: NanoDesign.Spacing.md) {
                                 ForEach(viewModel.pendingFiles, id: \.self) { url in
                                     FileRowView(
                                         url: url,
@@ -142,67 +142,66 @@ struct MainContentView: View {
                                 }
                                 
                                 Button(action: viewModel.selectFiles) {
-                                    HStack {
+                                    HStack(spacing: NanoDesign.Spacing.sm) {
                                         Image(systemName: "plus.circle.fill")
+                                            .uiIconStyle()
                                         Text("Add More Files")
                                     }
-                                    .font(.proRounded(.body, weight: .medium))
+                                    .font(.bodyMedium)
                                     .foregroundStyle(.secondary)
                                     .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 10)
+                                    .padding(.vertical, NanoDesign.Spacing.md)
                                     .background(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [4]))
-                                            .foregroundStyle(.tertiary)
+                                        RoundedRectangle(cornerRadius: NanoDesign.CornerRadius.small)
+                                            .strokeBorder(style: StrokeStyle(lineWidth: NanoDesign.Border.separator, dash: [6]))
+                                            .foregroundStyle(NanoDesign.separatorColor)
                                     )
                                 }
                                 .buttonStyle(.plain)
-                                .padding(.top, 8)
+                                .padding(.top, NanoDesign.Spacing.sm)
                             }
                             .padding()
                         }
                         
-                        // Main Compress Button
+                        // Main Compress Button with borderedProminent
                         if !viewModel.compressor.isProcessing {
                             Divider()
-                                .background(Color.secondary.opacity(0.2))
+                                .background(NanoDesign.separatorColor)
                             HStack {
                                 Button(action: viewModel.startCompression) {
-                                    HStack {
+                                    HStack(spacing: NanoDesign.Spacing.sm) {
                                         Image(systemName: "arrow.right.circle.fill")
+                                            .symbolRenderingMode(.hierarchical)
                                         Text("Compress Files")
-                                            .font(.proRounded(.headline))
+                                            .font(.bodyMedium)
                                     }
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 5)
                                 }
-                                .buttonStyle(.premiumAction)
+                                .buttonStyle(.borderedProminent)
                                 .controlSize(.large)
                                 .padding()
                             }
-                            .background(.regularMaterial)
+                            .background(.ultraThinMaterial)
                         } else {
-                            // Cancel button when processing
+                            // Cancel button when processing - red destructive style
                             Divider()
-                                .background(Color.secondary.opacity(0.2))
+                                .background(NanoDesign.separatorColor)
                             HStack {
                                 Button(action: {
                                     viewModel.compressor.cancelCompression()
                                 }) {
-                                    HStack {
+                                    HStack(spacing: NanoDesign.Spacing.sm) {
                                         Image(systemName: "xmark.circle.fill")
+                                            .symbolRenderingMode(.hierarchical)
                                         Text("Cancel")
-                                            .font(.proRounded(.headline))
+                                            .font(.bodyMedium)
                                     }
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 5)
                                 }
-                                .buttonStyle(.bordered)
-                                .tint(.red)
+                                .buttonStyle(.borderedProminent)
+                                .tint(NanoDesign.destructive)
                                 .controlSize(.large)
                                 .padding()
                             }
-                            .background(.regularMaterial)
+                            .background(.ultraThinMaterial)
                         }
                     }
                     .transition(.opacity)
@@ -222,10 +221,11 @@ struct MainContentView: View {
                 VStack {
                     HStack(spacing: 12) {
                         Image(systemName: viewModel.isErrorNotification ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
-                            .foregroundStyle(viewModel.isErrorNotification ? .red : .green)
-                            .font(.title3)
+                            .symbolRenderingMode(.hierarchical)
+                            .foregroundStyle(viewModel.isErrorNotification ? NanoDesign.destructive : NanoDesign.success)
+                            .font(.system(size: 20, weight: .medium))
                         Text(viewModel.notificationMessage)
-                            .font(.proRounded(.body, weight: .medium))
+                            .font(.bodyMedium)
                             
                         if !viewModel.isErrorNotification {
                             Button("Show in Finder") {
@@ -241,11 +241,11 @@ struct MainContentView: View {
                         Spacer()
                     }
                     .padding()
-                    .background(.regularMaterial)
-                    .cornerRadius(12)
-                    .shadow(radius: 10)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(NanoDesign.CornerRadius.large)
+                    .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 4)
                     .frame(maxWidth: 400)
-                    .padding(.top, 20)
+                    .padding(.top, NanoDesign.Spacing.xl)
                     
                     Spacer()
                 }
